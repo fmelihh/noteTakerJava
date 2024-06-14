@@ -24,8 +24,8 @@ public class PostgresConnector {
         Statement stmt;
         try {
             stmt = c.createStatement();
-            String sql = "CREATE TABLE NOTES " +
-                    "(ID INT PRIMARY KEY NOT NULL, " +
+            String sql = "CREATE TABLE IF NOT EXISTS NOTES " +
+                    "(ID SERIAL PRIMARY KEY NOT NULL, " +
                     "NOTE_NAME TEXT NOT NULL, " +
                     "NOTE TEXT NOT NULL)";
             stmt.execute(sql);
@@ -36,5 +36,20 @@ public class PostgresConnector {
             System.exit(0);
         }
         System.out.println("Migration completed.");
+    }
+
+    public void saveNotes(String title, String body) {
+        Statement stmt;
+        try {
+            stmt = c.createStatement();
+            String sql = "INSERT INTO NOTES (NOTE_NAME, NOTE) " +
+                    "VALUES ('" + title + "', '" + body + "')";
+            stmt.executeUpdate(sql);
+            stmt.close();
+        } catch (Exception e) {
+             e.printStackTrace();
+            System.err.println(e.getClass().getName()+": "+e.getMessage());
+            System.exit(0);
+        }
     }
 }
