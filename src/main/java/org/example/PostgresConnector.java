@@ -6,24 +6,42 @@ import java.sql.DriverManager;
 
 public class PostgresConnector {
     Connection c = null;
+    String username = null;
+    String password = null;
+    String connectionString = null;
+
+    static final String PostgresClassName = "org.postgresql.Driver";
 
     public PostgresConnector() {
+        this.username = "postgres";
+        this.password = "postgres";
+        this.connectionString = "jdbc:postgresql://localhost:5432/testdb";
+        migrateDatabase();
+    }
+
+    public PostgresConnector(String username, String password, String connectionString) {
+        this.username = username;
+        this.password = password;
+        this.connectionString = connectionString;
+    }
+
+    public Connection getConnection() {
         try {
-            Class.forName("org.postgresql.Driver");
-            this.c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "postgres");
+            Class.forName(PostgresClassName);
+            c = DriverManager.getConnection(connectionString, username, password);
         } catch (Exception e) {
-            e.printStackTrace();
             System.err.println(e.getClass().getName()+": "+e.getMessage());
             System.exit(0);
         }
         System.out.println("Database connection established.");
-        migrateDatabase();
+        return c;
     }
 
     public void migrateDatabase() {
         Statement stmt;
+        Connection con = getConnection();
         try {
-            stmt = c.createStatement();
+            stmt = con.createStatement();
             String sql = "CREATE TABLE IF NOT EXISTS NOTES " +
                     "(ID SERIAL PRIMARY KEY NOT NULL, " +
                     "NOTE_NAME TEXT NOT NULL, " +
@@ -34,14 +52,20 @@ public class PostgresConnector {
             e.printStackTrace();
             System.err.println(e.getClass().getName()+": "+e.getMessage());
             System.exit(0);
+        } finally {
+            try { con.close(); } catch (Exception e ) {
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                System.exit(0);
+            }
         }
         System.out.println("Migration completed.");
     }
 
     public void saveNotes(String title, String body) {
         Statement stmt;
+        Connection con = getConnection();
         try {
-            stmt = c.createStatement();
+            stmt = con.createStatement();
             String sql = "INSERT INTO NOTES (NOTE_NAME, NOTE) " +
                     "VALUES ('" + title + "', '" + body + "')";
             stmt.executeUpdate(sql);
@@ -50,6 +74,12 @@ public class PostgresConnector {
              e.printStackTrace();
             System.err.println(e.getClass().getName()+": "+e.getMessage());
             System.exit(0);
+        }
+        finally {
+            try { con.close(); } catch (Exception e ) {
+                System.err.println(e.getClass().getName()+": "+e.getMessage());
+                System.exit(0);
+            }
         }
     }
 }
