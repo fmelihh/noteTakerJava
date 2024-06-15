@@ -19,12 +19,6 @@ public class PostgresConnector {
         migrateDatabase();
     }
 
-    public PostgresConnector(String username, String password, String connectionString) {
-        this.username = username;
-        this.password = password;
-        this.connectionString = connectionString;
-    }
-
     public Connection getConnection() {
         try {
             Class.forName(PostgresClassName);
